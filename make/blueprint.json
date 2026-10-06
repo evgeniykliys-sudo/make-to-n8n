@@ -1,0 +1,160 @@
+{
+  "name": "Заявка → Telegram (исходный, Make)",
+  "flow": [
+    {
+      "id": 1,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": {
+        "hook": 3851760,
+        "maxResults": 1
+      },
+      "mapper": {},
+      "metadata": {
+        "designer": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "id": 2,
+      "module": "builtin:BasicRouter",
+      "version": 1,
+      "mapper": null,
+      "metadata": {
+        "designer": {
+          "x": 300,
+          "y": 0
+        }
+      },
+      "routes": [
+        {
+          "flow": [
+            {
+              "id": 3,
+              "module": "http:ActionSendData",
+              "version": 3,
+              "parameters": {
+                "handleErrors": false
+              },
+              "filter": {
+                "name": "Есть телефон",
+                "conditions": [
+                  [
+                    {
+                      "a": "{{1.phone}}",
+                      "o": "exist"
+                    }
+                  ]
+                ]
+              },
+              "mapper": {
+                "url": "https://api.telegram.org/bot<BOT_TOKEN>/sendMessage",
+                "method": "get",
+                "headers": [],
+                "serializeUrl": false,
+                "useMtls": false,
+                "bodyType": "raw",
+                "contentType": "application/json",
+                "data": "",
+                "ca": "",
+                "timeout": "",
+                "authUser": "",
+                "authPass": "",
+                "qs": [
+                  {
+                    "name": "chat_id",
+                    "value": "436026215"
+                  },
+                  {
+                    "name": "text",
+                    "value": "🆕 Новая заявка\nИмя: {{trim(1.name)}}\nТелефон: {{replace(1.phone; \"/[^0-9+]/g\"; emptystring)}}\nСообщение: {{ifempty(1.message; \"—\")}}\nИсточник: {{ifempty(1.source; \"сайт\")}}"
+                  }
+                ],
+                "gzip": true,
+                "shareCookies": false,
+                "parseResponse": true,
+                "followRedirect": true,
+                "useQuerystring": false,
+                "followAllRedirects": false,
+                "rejectUnauthorized": true
+              },
+              "metadata": {
+                "designer": {
+                  "x": 600,
+                  "y": -150
+                }
+              }
+            },
+            {
+              "id": 4,
+              "module": "gateway:WebhookRespond",
+              "version": 1,
+              "parameters": {},
+              "mapper": {
+                "status": "200",
+                "body": "🆕 Новая заявка\nИмя: {{trim(1.name)}}\nТелефон: {{replace(1.phone; \"/[^0-9+]/g\"; emptystring)}}\nСообщение: {{ifempty(1.message; \"—\")}}\nИсточник: {{ifempty(1.source; \"сайт\")}}"
+              },
+              "metadata": {
+                "designer": {
+                  "x": 900,
+                  "y": -150
+                }
+              }
+            }
+          ]
+        },
+        {
+          "flow": [
+            {
+              "id": 5,
+              "module": "gateway:WebhookRespond",
+              "version": 1,
+              "parameters": {},
+              "filter": {
+                "name": "Нет телефона",
+                "conditions": [
+                  [
+                    {
+                      "a": "{{1.phone}}",
+                      "o": "notexist"
+                    }
+                  ]
+                ]
+              },
+              "mapper": {
+                "status": "422",
+                "body": "Заявка без телефона — не отправлена"
+              },
+              "metadata": {
+                "designer": {
+                  "x": 600,
+                  "y": 150
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "instant": true,
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "sequential": false,
+      "confidential": false,
+      "dataloss": false,
+      "dlq": false,
+      "freshVariables": false
+    },
+    "designer": {
+      "orphans": []
+    }
+  }
+}
